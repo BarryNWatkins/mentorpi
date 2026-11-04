@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+ 
+  <!-- Camera settings: lower these if the sim runs slowly -->
+  <xacro:property name="cam_width" value="320"/>
+  <xacro:property name="cam_height" value="240"/>
+  <xacro:property name="cam_rate" value="10"/>
+ 
+  <!-- Camera optical frame. Sim only: on the real robot the ascamera driver
+       and its static transforms publish this frame. -->
+  <link name="ascamera_color_0"/>
+  <joint name="ascamera_color_0_joint" type="fixed">
+    <parent link="depth_cam"/>
+    <child link="ascamera_color_0"/>
+    <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+  </joint>
+ 
+  <!-- 2D lidar on the lidar_frame link -->
+  <gazebo reference="lidar_frame">
+    <sensor name="lidar" type="gpu_lidar">
+      <topic>scan_raw</topic>
+      <gz_frame_id>lidar_frame</gz_frame_id>
+      <update_rate>10</update_rate>
+      <always_on>true</always_on>
+      <visualize>false</visualize>
+      <lidar>
+        <scan>
+          <horizontal>
+            <samples>450</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.14159</min_angle>
+            <max_angle>3.14159</max_angle>
+          </horizontal>
+        </scan>
+        <!-- min 0.12 keeps the rays from hitting the robot's own parts -->
+        <range>
+          <min>0.12</min>
+          <max>12.0</max>
+          <resolution>0.01</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </lidar>
+    </sensor>
+  </gazebo>
+ 
+  <!-- Color + depth + point cloud camera on the depth_cam link -->
+  <gazebo reference="depth_cam">
+    <sensor name="depth_cam" type="rgbd_camera">
+      <topic>camera</topic>
+      <gz_frame_id>ascamera_color_0</gz_frame_id>
+      <update_rate>${cam_rate}</update_rate>
+      <always_on>true</always_on>
+      <visualize>false</visualize>
+      <camera>
+        <horizontal_fov>1.089</horizontal_fov>
+        <image>
+          <width>${cam_width}</width>
+          <height>${cam_height}</height>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>8.0</far>
+        </clip>
+        <depth_camera>
+          <clip>
+            <near>0.1</near>
+            <far>8.0</far>
+          </clip>
+        </depth_camera>
+      </camera>
+    </sensor>
+  </gazebo>
+ 
+</robot>
